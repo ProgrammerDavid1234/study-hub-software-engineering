@@ -73,7 +73,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (session) {
         // Use the "profiles" table instead of "user_profiles"
-        // Fix: Use a proper async pattern with error handling
         (async () => {
           try {
             const { data } = await supabase
@@ -139,14 +138,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log("Attempting to register user with email:", userData.email);
       
+      // Check if user already exists in profiles table
       const { data: existingUsers, error: checkError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('email', userData.email);
+        .eq('email', userData.email)
+        .maybeSingle();
       
       if (checkError) {
         console.error("Error checking existing user:", checkError);
-      } else if (existingUsers && existingUsers.length > 0) {
+      } else if (existingUsers) {
         toast({
           title: "Registration failed",
           description: "This email is already registered",
@@ -155,7 +156,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
       
-      const { error } = await supabase.auth.signUp({
+      // Fix: Use explicit type for options to avoid infinite type recursion
+      const signUpOptions = {
         email: userData.email,
         password: userData.password,
         options: {
@@ -164,9 +166,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             role: userData.role,
             matricNumber: userData.matricNumber,
             level: userData.level,
-          },
-        },
-      });
+          }
+        }
+      };
+      
+      const { error } = await supabase.auth.signUp(signUpOptions);
 
       if (error) {
         console.error("Registration error details:", error);
