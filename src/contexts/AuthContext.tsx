@@ -32,19 +32,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session) {
-          // Fetch user profile data
+          // Fetch user profile data using postgrest's generic query
           const { data: profile } = await supabase
             .from('user_profiles')
             .select('*')
             .eq('id', session.user.id)
-            .single();
+            .single() as { data: any };
 
           if (profile) {
             setUser({
               id: session.user.id,
               name: profile.name,
               email: profile.email,
-              role: profile.role,
+              role: profile.role as "student" | "teacher",
               matricNumber: profile.matric_number,
               level: profile.level,
             });
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        // Fetch user profile data
+        // Fetch user profile data using postgrest's generic query
         supabase
           .from('user_profiles')
           .select('*')
@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 id: session.user.id,
                 name: profile.name,
                 email: profile.email,
-                role: profile.role,
+                role: profile.role as "student" | "teacher",
                 matricNumber: profile.matric_number,
                 level: profile.level,
               });
