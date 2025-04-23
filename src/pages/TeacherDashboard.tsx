@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Mock data for recently uploaded questions
 const recentUploads = [
   { 
     id: "1",
@@ -21,7 +19,8 @@ const recentUploads = [
     semester: "First",
     format: "PDF",
     uploadDate: "2023-12-15",
-    downloads: 45
+    downloads: 45,
+    level: "300L"
   },
   { 
     id: "2",
@@ -31,7 +30,8 @@ const recentUploads = [
     semester: "Second",
     format: "PDF",
     uploadDate: "2023-10-20",
-    downloads: 32
+    downloads: 32,
+    level: "300L"
   },
   { 
     id: "3",
@@ -41,7 +41,8 @@ const recentUploads = [
     semester: "First",
     format: "DOCX",
     uploadDate: "2022-12-05",
-    downloads: 67
+    downloads: 67,
+    level: "400L"
   }
 ];
 
@@ -61,7 +62,6 @@ const TeacherDashboard = () => {
   const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
-    // Check if the user is authenticated and is a teacher
     if (!isAuthenticated) {
       navigate("/teacher/login");
       return;
@@ -72,7 +72,6 @@ const TeacherDashboard = () => {
       return;
     }
     
-    // Simulate data loading
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1000);
@@ -94,14 +93,12 @@ const TeacherDashboard = () => {
     e.preventDefault();
     setIsUploading(true);
     
-    // Simulate file upload
     setTimeout(() => {
       toast({
         title: "Upload successful",
         description: `${uploadForm.courseCode}: ${uploadForm.courseTitle} has been uploaded.`,
       });
       
-      // Reset form
       setUploadForm({
         courseCode: "",
         courseTitle: "",
@@ -138,7 +135,6 @@ const TeacherDashboard = () => {
           </header>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {/* Quick Stats Cards */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Total Uploads</CardTitle>

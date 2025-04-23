@@ -184,7 +184,8 @@ const PastQuestions = () => {
                           <SelectValue placeholder="Filter by Level" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All Levels</SelectItem>
+                          {/* Fixed: Empty string value replaced with "all" */}
+                          <SelectItem value="all">All Levels</SelectItem>
                           {levels.map(level => (
                             <SelectItem key={level} value={level}>{level}</SelectItem>
                           ))}
@@ -201,7 +202,8 @@ const PastQuestions = () => {
                           <SelectValue placeholder="Filter by Year" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All Years</SelectItem>
+                          {/* Fixed: Empty string value replaced with "all" */}
+                          <SelectItem value="all">All Years</SelectItem>
                           {years.map(year => (
                             <SelectItem key={year} value={year}>{year}</SelectItem>
                           ))}
@@ -218,7 +220,8 @@ const PastQuestions = () => {
                           <SelectValue placeholder="Filter by Semester" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All Semesters</SelectItem>
+                          {/* Fixed: Empty string value replaced with "all" */}
+                          <SelectItem value="all">All Semesters</SelectItem>
                           {semesters.map(semester => (
                             <SelectItem key={semester} value={semester}>{semester} Semester</SelectItem>
                           ))}
