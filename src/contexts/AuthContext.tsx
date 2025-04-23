@@ -73,12 +73,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (session) {
         // Use the "profiles" table instead of "user_profiles"
-        supabase
-          .from('profiles')
-          .select('first_name, last_name, avatar_url')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data }) => {
+        // Fix: Use a proper async pattern with error handling
+        (async () => {
+          try {
+            const { data } = await supabase
+              .from('profiles')
+              .select('first_name, last_name, avatar_url')
+              .eq('id', session.user.id)
+              .single();
+            
             if (data) {
               // Manually create the user profile using session data and profile data
               const userMetadata = session.user.user_metadata || {};
@@ -92,10 +95,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 level: userMetadata.level,
               });
             }
-          })
-          .catch(error => {
+          } catch (error) {
             console.error("Error fetching user profile:", error);
-          });
+          }
+        })();
       }
     });
 
