@@ -3,7 +3,7 @@ import { createContext, useState, useContext, ReactNode, useEffect } from "react
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
-type User = {
+type UserProfile = {
   id: string;
   name: string;
   email: string;
@@ -13,9 +13,9 @@ type User = {
 };
 
 type AuthContextType = {
-  user: User | null;
+  user: UserProfile | null;
   login: (email: string, password: string, role: "student" | "teacher") => Promise<boolean>;
-  register: (userData: Omit<User, "id"> & { password: string }) => Promise<boolean>;
+  register: (userData: Omit<UserProfile, "id"> & { password: string }) => Promise<boolean>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 };
@@ -23,7 +23,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const { toast } = useToast();
   const isAuthenticated = !!user;
 
@@ -32,12 +32,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session) {
-          // Fetch user profile data using postgrest's generic query
-          const { data: profile } = await supabase
+          const { data: profile, error } = await supabase
             .from('user_profiles')
-            .select('*')
+            .select('name, email, role, matric_number, level')
             .eq('id', session.user.id)
-            .single() as { data: any };
+            .single();
 
           if (profile) {
             setUser({
@@ -58,10 +57,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        // Fetch user profile data using postgrest's generic query
         supabase
           .from('user_profiles')
-          .select('*')
+          .select('name, email, role, matric_number, level')
           .eq('id', session.user.id)
           .single()
           .then(({ data: profile }) => {
@@ -112,7 +110,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const register = async (userData: Omit<User, "id"> & { password: string }): Promise<boolean> => {
+  const register = async (userData: Omit<UserProfile, "id"> & { password: string }): Promise<boolean> => {
     try {
       const { error } = await supabase.auth.signUp({
         email: userData.email,
