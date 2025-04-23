@@ -72,7 +72,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       
       if (session) {
-        // Use the "profiles" table instead of "user_profiles"
         (async () => {
           try {
             const { data } = await supabase
@@ -156,21 +155,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
       
-      // Fix: Use explicit type for options to avoid infinite type recursion
-      const signUpOptions = {
+      // Define the user metadata separately to avoid deep nesting
+      const userMetadata = {
+        name: userData.name,
+        role: userData.role,
+        matricNumber: userData.matricNumber,
+        level: userData.level,
+      };
+      
+      // Use a simpler structure for the signUp call
+      const { error } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
-          data: {
-            name: userData.name,
-            role: userData.role,
-            matricNumber: userData.matricNumber,
-            level: userData.level,
-          }
+          data: userMetadata
         }
-      };
-      
-      const { error } = await supabase.auth.signUp(signUpOptions);
+      });
 
       if (error) {
         console.error("Registration error details:", error);
