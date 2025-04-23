@@ -1,5 +1,7 @@
 
-import { createContext, useState, useContext, ReactNode } from "react";
+import { createContext, useState, useContext, ReactNode, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 type User = {
   id: string;
@@ -14,72 +16,157 @@ type AuthContextType = {
   user: User | null;
   login: (email: string, password: string, role: "student" | "teacher") => Promise<boolean>;
   register: (userData: Omit<User, "id"> & { password: string }) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const savedUser = localStorage.getItem("user");
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const { toast } = useToast();
   const isAuthenticated = !!user;
 
-  // Mock login function - in a real app this would connect to a backend
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          // Fetch user profile data
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profile) {
+            setUser({
+              id: session.user.id,
+              name: profile.name,
+              email: profile.email,
+              role: profile.role,
+              matricNumber: profile.matric_number,
+              level: profile.level,
+            });
+          }
+        } else {
+          setUser(null);
+        }
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        // Fetch user profile data
+        supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data: profile }) => {
+            if (profile) {
+              setUser({
+                id: session.user.id,
+                name: profile.name,
+                email: profile.email,
+                role: profile.role,
+                matricNumber: profile.matric_number,
+                level: profile.level,
+              });
+            }
+          });
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
   const login = async (email: string, password: string, role: "student" | "teacher"): Promise<boolean> => {
-    // For demo purposes, we'll just accept any email/password
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Create a mock user
-      const mockUser: User = {
-        id: Math.random().toString(36).substring(2, 9),
-        name: email.split('@')[0], // Just using part of the email as a mock name
+      const { error } = await supabase.auth.signInWithPassword({
         email,
-        role,
-        matricNumber: role === "student" ? "SW" + Math.floor(Math.random() * 10000) : undefined,
-        level: role === "student" ? "300L" : undefined,
-      };
+        password,
+      });
 
-      setUser(mockUser);
-      localStorage.setItem("user", JSON.stringify(mockUser));
+      if (error) {
+        toast({
+          title: "Login failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return false;
+      }
+
       return true;
     } catch (error) {
       console.error("Login failed:", error);
+      toast({
+        title: "Login failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
       return false;
     }
   };
 
-  // Mock register function
   const register = async (userData: Omit<User, "id"> & { password: string }): Promise<boolean> => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { error } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          data: {
+            name: userData.name,
+            role: userData.role,
+            matricNumber: userData.matricNumber,
+            level: userData.level,
+          },
+        },
+      });
 
-      // Create a new user with an ID
-      const newUser: User = {
-        id: Math.random().toString(36).substring(2, 9),
-        ...userData,
-      };
+      if (error) {
+        toast({
+          title: "Registration failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return false;
+      }
 
-      // Remove password from the stored user object
-      const { password, ...userWithoutPassword } = newUser as any;
-
-      setUser(userWithoutPassword);
-      localStorage.setItem("user", JSON.stringify(userWithoutPassword));
+      toast({
+        title: "Registration successful",
+        description: "Please check your email to verify your account",
+      });
       return true;
     } catch (error) {
       console.error("Registration failed:", error);
+      toast({
+        title: "Registration failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
       return false;
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      toast({
+        title: "Logged out successfully",
+      });
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast({
+        title: "Logout failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
