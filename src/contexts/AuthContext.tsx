@@ -137,6 +137,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const register = async (userData: Omit<UserProfile, "id"> & { password: string }): Promise<boolean> => {
     try {
+      console.log("Attempting to register user with email:", userData.email);
+      
+      const { data: existingUsers, error: checkError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', userData.email);
+      
+      if (checkError) {
+        console.error("Error checking existing user:", checkError);
+      } else if (existingUsers && existingUsers.length > 0) {
+        toast({
+          title: "Registration failed",
+          description: "This email is already registered",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
       const { error } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
@@ -151,11 +169,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        toast({
-          title: "Registration failed",
-          description: error.message,
-          variant: "destructive",
-        });
+        console.error("Registration error details:", error);
+        
+        if (error.message.includes("already registered")) {
+          toast({
+            title: "Registration failed",
+            description: "This email is already registered. Please try logging in instead.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Registration failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
         return false;
       }
 
@@ -165,7 +193,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       return true;
     } catch (error) {
-      console.error("Registration failed:", error);
+      console.error("Registration failed with exception:", error);
       toast({
         title: "Registration failed",
         description: "An unexpected error occurred",

@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { Navbar } from "@/components/Navbar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
 
 const StudentRegister = () => {
   const [formData, setFormData] = useState({
@@ -20,6 +22,7 @@ const StudentRegister = () => {
     level: "100L",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { register } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -27,27 +30,67 @@ const StudentRegister = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing again
+    if (error) setError(null);
   };
 
   const handleSelectChange = (value: string) => {
     setFormData((prev) => ({ ...prev, level: value }));
+    // Clear error when user makes a selection
+    if (error) setError(null);
+  };
+
+  const validateForm = () => {
+    if (!formData.name.trim()) {
+      setError("Full name is required");
+      return false;
+    }
+
+    if (!formData.matricNumber.trim()) {
+      setError("Matric number is required");
+      return false;
+    }
+
+    if (!formData.email.trim()) {
+      setError("Email is required");
+      return false;
+    }
+
+    if (!formData.email.includes('@')) {
+      setError("Please enter a valid email");
+      return false;
+    }
+
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return false;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "Passwords do not match",
-        description: "Please ensure both password fields match",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!validateForm()) return;
     
     setIsLoading(true);
+    setError(null);
     
     try {
+      console.log("Registering with data:", {
+        name: formData.name,
+        email: formData.email,
+        role: "student",
+        matricNumber: formData.matricNumber,
+        level: formData.level,
+      });
+      
       const success = await register({
         name: formData.name,
         email: formData.email,
@@ -64,18 +107,11 @@ const StudentRegister = () => {
         });
         navigate("/student/dashboard");
       } else {
-        toast({
-          title: "Registration failed",
-          description: "An error occurred during registration",
-          variant: "destructive",
-        });
+        setError("Registration failed. Please try again with a different email.");
       }
     } catch (error) {
-      toast({
-        title: "Registration failed",
-        description: "An error occurred. Please try again.",
-        variant: "destructive",
-      });
+      console.error("Registration error:", error);
+      setError(error instanceof Error ? error.message : "An unknown error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -93,6 +129,12 @@ const StudentRegister = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
@@ -178,7 +220,14 @@ const StudentRegister = () => {
                 className="w-full bg-studyhub-primary hover:bg-studyhub-primary/90"
                 disabled={isLoading}
               >
-                {isLoading ? "Creating account..." : "Register"}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+                    Creating account...
+                  </>
+                ) : (
+                  "Register"
+                )}
               </Button>
             </form>
           </CardContent>
