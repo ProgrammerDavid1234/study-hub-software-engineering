@@ -2,6 +2,7 @@
 import { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { Session, User } from "@supabase/supabase-js";
 
 type UserProfile = {
   id: string;
@@ -24,6 +25,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const { toast } = useToast();
   const isAuthenticated = !!user;
 
@@ -31,22 +33,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        setSession(session);
+        
         if (session) {
-          const { data: profile, error } = await supabase
-            .from('user_profiles')
-            .select('name, email, role, matric_number, level')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profile) {
-            setUser({
-              id: session.user.id,
-              name: profile.name,
-              email: profile.email,
-              role: profile.role as "student" | "teacher",
-              matricNumber: profile.matric_number,
-              level: profile.level,
-            });
+          try {
+            // Use the "profiles" table instead of "user_profiles"
+            const { data } = await supabase
+              .from('profiles')
+              .select('first_name, last_name, avatar_url')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (data) {
+              // Manually create the user profile using session data and profile data
+              // The user's role will be stored in user metadata
+              const userMetadata = session.user.user_metadata || {};
+              
+              setUser({
+                id: session.user.id,
+                name: `${data.first_name || ''} ${data.last_name || ''}`.trim() || session.user.email?.split('@')[0] || 'User',
+                email: session.user.email || '',
+                role: (userMetadata.role as "student" | "teacher") || "student",
+                matricNumber: userMetadata.matricNumber,
+                level: userMetadata.level,
+              });
+            }
+          } catch (error) {
+            console.error("Error fetching user profile:", error);
           }
         } else {
           setUser(null);
@@ -56,23 +69,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      
       if (session) {
+        // Use the "profiles" table instead of "user_profiles"
         supabase
-          .from('user_profiles')
-          .select('name, email, role, matric_number, level')
+          .from('profiles')
+          .select('first_name, last_name, avatar_url')
           .eq('id', session.user.id)
           .single()
-          .then(({ data: profile }) => {
-            if (profile) {
+          .then(({ data }) => {
+            if (data) {
+              // Manually create the user profile using session data and profile data
+              const userMetadata = session.user.user_metadata || {};
+              
               setUser({
                 id: session.user.id,
-                name: profile.name,
-                email: profile.email,
-                role: profile.role as "student" | "teacher",
-                matricNumber: profile.matric_number,
-                level: profile.level,
+                name: `${data.first_name || ''} ${data.last_name || ''}`.trim() || session.user.email?.split('@')[0] || 'User',
+                email: session.user.email || '',
+                role: (userMetadata.role as "student" | "teacher") || "student",
+                matricNumber: userMetadata.matricNumber,
+                level: userMetadata.level,
               });
             }
+          })
+          .catch(error => {
+            console.error("Error fetching user profile:", error);
           });
       }
     });
