@@ -8,32 +8,32 @@ export const useSessionManager = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   
-  const extractUserProfile = (session: Session | null): UserProfile | null => {
+  const extractUserProfile = async (session: Session | null): Promise<UserProfile | null> => {
     if (!session) return null;
     
-    return supabase
-      .from('profiles')
-      .select('first_name, last_name, avatar_url')
-      .eq('id', session.user.id)
-      .single()
-      .then(({ data }) => {
-        if (!data) return null;
-        
-        const userMetadata = session.user.user_metadata || {};
-        
-        return {
-          id: session.user.id,
-          name: `${data.first_name || ''} ${data.last_name || ''}`.trim() || session.user.email?.split('@')[0] || 'User',
-          email: session.user.email || '',
-          role: (userMetadata.role as "student" | "teacher") || "student",
-          matricNumber: userMetadata.matricNumber,
-          level: userMetadata.level,
-        };
-      })
-      .catch((error) => {
-        console.error("Error fetching user profile:", error);
-        return null;
-      });
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, avatar_url')
+        .eq('id', session.user.id)
+        .maybeSingle();
+      
+      if (!data) return null;
+      
+      const userMetadata = session.user.user_metadata || {};
+      
+      return {
+        id: session.user.id,
+        name: `${data.first_name || ''} ${data.last_name || ''}`.trim() || session.user.email?.split('@')[0] || 'User',
+        email: session.user.email || '',
+        role: (userMetadata.role as "student" | "teacher") || "student",
+        matricNumber: userMetadata.matricNumber,
+        level: userMetadata.level,
+      };
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      return null;
+    }
   };
 
   useEffect(() => {
@@ -74,30 +74,15 @@ export const useSessionManager = () => {
       setSession(session);
       
       if (session) {
-        (async () => {
-          try {
-            const { data } = await supabase
-              .from('profiles')
-              .select('first_name, last_name, avatar_url')
-              .eq('id', session.user.id)
-              .single();
-            
-            if (data) {
-              const userMetadata = session.user.user_metadata || {};
-              
-              setUser({
-                id: session.user.id,
-                name: `${data.first_name || ''} ${data.last_name || ''}`.trim() || session.user.email?.split('@')[0] || 'User',
-                email: session.user.email || '',
-                role: (userMetadata.role as "student" | "teacher") || "student",
-                matricNumber: userMetadata.matricNumber,
-                level: userMetadata.level,
-              });
+        extractUserProfile(session)
+          .then(userProfile => {
+            if (userProfile) {
+              setUser(userProfile);
             }
-          } catch (error) {
-            console.error("Error fetching user profile:", error);
-          }
-        })();
+          })
+          .catch(error => {
+            console.error("Error extracting user profile:", error);
+          });
       }
     });
 

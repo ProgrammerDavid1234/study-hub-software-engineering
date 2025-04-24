@@ -44,19 +44,19 @@ export const authService = {
         level: userData.level
       };
       
-      // Register the user
-      const { data, error } = await supabase.auth.signUp({
+      // Register the user - Fix the excessive type depth issue
+      const signUpResult = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: { data: userMetadata }
       });
 
-      if (error) {
-        console.error("Registration error details:", error);
-        return { error };
+      if (signUpResult.error) {
+        console.error("Registration error details:", signUpResult.error);
+        return { error: signUpResult.error };
       }
 
-      return { data };
+      return { data: signUpResult.data };
     } catch (error) {
       console.error("Registration failed with exception:", error);
       return { error: error as Error };
