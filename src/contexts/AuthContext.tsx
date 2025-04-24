@@ -29,7 +29,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isAuthenticated = !!user;
 
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
@@ -43,8 +42,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               .single();
             
             if (data) {
-              // Manually create the user profile using session data and profile data
-              // The user's role will be stored in user metadata
               const userMetadata = session.user.user_metadata || {};
               
               setUser({
@@ -65,7 +62,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       
@@ -79,7 +75,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               .single();
             
             if (data) {
-              // Manually create the user profile using session data and profile data
               const userMetadata = session.user.user_metadata || {};
               
               setUser({
@@ -135,7 +130,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log("Attempting to register user with email:", userData.email);
       
-      // Check if user already exists in profiles table
       const { data: existingUsers, error: checkError } = await supabase
         .from('profiles')
         .select('id')
@@ -153,7 +147,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
       
-      // Fixed version: Use AuthResponse type explicitly and avoid deep nesting
       const { data, error } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
@@ -219,8 +212,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const value: AuthContextType = {
+    user,
+    login,
+    register,
+    logout,
+    isAuthenticated,
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isAuthenticated }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
