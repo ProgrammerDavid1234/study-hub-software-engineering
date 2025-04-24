@@ -1,4 +1,3 @@
-
 import { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -37,7 +36,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         if (session) {
           try {
-            // Use the "profiles" table instead of "user_profiles"
             const { data } = await supabase
               .from('profiles')
               .select('first_name, last_name, avatar_url')
@@ -155,20 +153,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
       
-      // Define the user metadata separately to avoid deep nesting
-      const userMetadata = {
-        name: userData.name,
-        role: userData.role,
-        matricNumber: userData.matricNumber,
-        level: userData.level,
-      };
-      
-      // Use a simpler structure for the signUp call
-      const { error } = await supabase.auth.signUp({
+      // Fixed version: Use AuthResponse type explicitly and avoid deep nesting
+      const { data, error } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
-          data: userMetadata
+          data: {
+            name: userData.name,
+            role: userData.role,
+            matricNumber: userData.matricNumber,
+            level: userData.level
+          }
         }
       });
 
