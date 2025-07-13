@@ -1,5 +1,5 @@
 
-import { createContext, useContext, ReactNode } from "react";
+import { createContext, useContext, ReactNode, useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useSessionManager } from "@/hooks/useSessionManager";
 import { authService } from "@/services/authService";
@@ -10,7 +10,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { user, setUser } = useSessionManager();
   const { toast } = useToast();
+  const [isInitialized, setIsInitialized] = useState(false);
   const isAuthenticated = !!user;
+
+  useEffect(() => {
+    // Mark as initialized after the first render
+    setIsInitialized(true);
+  }, []);
+
+  // Don't render children until context is initialized
+  if (!isInitialized) {
+    return <div>Loading...</div>;
+  }
 
   const login = async (email: string, password: string, role: "student" | "teacher"): Promise<boolean> => {
     try {
