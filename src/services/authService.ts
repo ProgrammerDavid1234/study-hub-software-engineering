@@ -23,18 +23,8 @@ export const authService = {
   
   register: async (userData: Omit<UserProfile, "id"> & { password: string }): Promise<{ error?: Error; data?: any }> => {
     try {
-      // Check if user already exists
-      const { data: existingUsers, error: checkError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', userData.email)
-        .maybeSingle();
-      
-      if (checkError) {
-        console.error("Error checking existing user:", checkError);
-      } else if (existingUsers) {
-        return { error: new Error("This email is already registered") };
-      }
+      // Note: User existence check removed since profiles table doesn't have email column
+      // Supabase auth will handle duplicate email validation
       
       // Set up user metadata
       const userMetadata = {
