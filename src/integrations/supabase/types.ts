@@ -309,42 +309,60 @@ export type Database = {
           approval_status: string | null
           avatar_url: string | null
           created_at: string | null
+          department: string | null
           email_verified: boolean | null
           first_name: string | null
           id: string
           is_admin: boolean | null
           last_name: string | null
+          level: string | null
+          matric_number: string | null
           phone_number: string | null
+          qualification: string | null
           receipt_path: string | null
+          role: string | null
           sms_parsing_enabled: boolean | null
+          staff_id: string | null
           updated_at: string | null
         }
         Insert: {
           approval_status?: string | null
           avatar_url?: string | null
           created_at?: string | null
+          department?: string | null
           email_verified?: boolean | null
           first_name?: string | null
           id: string
           is_admin?: boolean | null
           last_name?: string | null
+          level?: string | null
+          matric_number?: string | null
           phone_number?: string | null
+          qualification?: string | null
           receipt_path?: string | null
+          role?: string | null
           sms_parsing_enabled?: boolean | null
+          staff_id?: string | null
           updated_at?: string | null
         }
         Update: {
           approval_status?: string | null
           avatar_url?: string | null
           created_at?: string | null
+          department?: string | null
           email_verified?: boolean | null
           first_name?: string | null
           id?: string
           is_admin?: boolean | null
           last_name?: string | null
+          level?: string | null
+          matric_number?: string | null
           phone_number?: string | null
+          qualification?: string | null
           receipt_path?: string | null
+          role?: string | null
           sms_parsing_enabled?: boolean | null
+          staff_id?: string | null
           updated_at?: string | null
         }
         Relationships: []

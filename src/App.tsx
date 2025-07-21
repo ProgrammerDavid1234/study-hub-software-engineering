@@ -12,6 +12,7 @@ import LandingPage from "./pages/LandingPage";
 import StudentLogin from "./pages/StudentLogin";
 import StudentRegister from "./pages/StudentRegister";
 import TeacherLogin from "./pages/TeacherLogin";
+import TeacherRegister from "./pages/TeacherRegister";
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import PastQuestions from "./pages/PastQuestions";
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/student/login" element={<StudentLogin />} />
             <Route path="/student/register" element={<StudentRegister />} />
             <Route path="/teacher/login" element={<TeacherLogin />} />
+            <Route path="/teacher/register" element={<TeacherRegister />} />
             
             <Route
               path="/student/dashboard"

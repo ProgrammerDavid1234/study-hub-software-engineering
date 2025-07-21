@@ -103,6 +103,12 @@ const TeacherLogin = () => {
           </CardContent>
           <CardFooter className="flex flex-col">
             <div className="text-sm text-center text-gray-500">
+              Don't have an account?{" "}
+              <Link to="/teacher/register" className="text-studyhub-primary hover:underline">
+                Register here
+              </Link>
+            </div>
+            <div className="mt-2 text-sm text-center text-gray-500">
               Are you a student?{" "}
               <Link to="/student/login" className="text-studyhub-primary hover:underline">
                 Student login

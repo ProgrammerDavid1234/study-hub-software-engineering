@@ -8,6 +8,9 @@ export type UserProfile = {
   role: "student" | "teacher";
   matricNumber?: string;
   level?: string;
+  staffId?: string;
+  department?: string;
+  qualification?: string;
 };
 
 export type AuthContextType = {
