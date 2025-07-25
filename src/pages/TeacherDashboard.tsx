@@ -62,22 +62,13 @@ const TeacherDashboard = () => {
   const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/teacher/login");
-      return;
-    }
-    
-    if (user?.role !== "teacher") {
-      navigate("/");
-      return;
-    }
-    
+    // Skip authentication checks - just simulate data loading
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1000);
     
     return () => clearTimeout(timer);
-  }, [isAuthenticated, user, navigate]);
+  }, []);
 
   const handleFormChange = (field: string, value: string) => {
     setUploadForm(prev => ({ ...prev, [field]: value }));

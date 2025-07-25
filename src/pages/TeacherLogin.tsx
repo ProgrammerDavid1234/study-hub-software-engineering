@@ -21,27 +21,15 @@ const TeacherLogin = () => {
     e.preventDefault();
     setIsLoading(true);
     
+    // Skip authentication - just navigate to dashboard after any input
     try {
-      const success = await login(email, password, "teacher");
-      if (success) {
-        toast({
-          title: "Login successful",
-          description: "Welcome back to the teacher portal!",
-        });
-        navigate("/teacher/dashboard");
-      } else {
-        toast({
-          title: "Login failed",
-          description: "Invalid email or password",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
       toast({
-        title: "Login failed",
-        description: "An error occurred. Please try again.",
-        variant: "destructive",
+        title: "Login successful",
+        description: "Welcome back to the teacher portal!",
       });
+      navigate("/teacher/dashboard");
+    } catch (error) {
+      console.error("Navigation error:", error);
     } finally {
       setIsLoading(false);
     }
