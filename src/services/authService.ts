@@ -23,22 +23,31 @@ export const authService = {
   
   register: async (userData: Omit<UserProfile, "id"> & { password: string }): Promise<{ error?: Error; data?: any }> => {
     try {
-      // Note: User existence check removed since profiles table doesn't have email column
-      // Supabase auth will handle duplicate email validation
+      console.log("Starting registration process for:", userData.email);
       
       // Set up user metadata
       const userMetadata = {
         name: userData.name,
         role: userData.role,
         matricNumber: userData.matricNumber,
-        level: userData.level
+        level: userData.level,
+        staffId: userData.staffId,
+        department: userData.department,
+        qualification: userData.qualification
       };
       
-      // Register the user - Fix the excessive type depth issue
+      console.log("User metadata:", userMetadata);
+      
+      // Register the user with email redirect
+      const redirectUrl = `${window.location.origin}/student/login`;
+      
       const signUpResult = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
-        options: { data: userMetadata }
+        options: { 
+          data: userMetadata,
+          emailRedirectTo: redirectUrl
+        }
       });
 
       if (signUpResult.error) {
@@ -46,6 +55,7 @@ export const authService = {
         return { error: signUpResult.error };
       }
 
+      console.log("Registration successful:", signUpResult.data);
       return { data: signUpResult.data };
     } catch (error) {
       console.error("Registration failed with exception:", error);
