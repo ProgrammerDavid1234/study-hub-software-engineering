@@ -38,15 +38,12 @@ export const authService = {
       
       console.log("User metadata:", userMetadata);
       
-      // Register the user with email redirect
-      const redirectUrl = `${window.location.origin}/student/login`;
-      
+      // Register and automatically sign in the user
       const signUpResult = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: { 
-          data: userMetadata,
-          emailRedirectTo: redirectUrl
+          data: userMetadata
         }
       });
 
