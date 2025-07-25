@@ -24,12 +24,17 @@ const StudentLogin = () => {
     try {
       const success = await login(email, password, "student");
       if (success) {
+        console.log("Login successful, navigating to dashboard");
         toast({
           title: "Login successful",
           description: "Welcome back to StudyHub SE!",
         });
-        navigate("/student/dashboard");
+        // Add a small delay to ensure auth state is updated
+        setTimeout(() => {
+          navigate("/student/dashboard");
+        }, 100);
       } else {
+        console.log("Login failed");
         toast({
           title: "Login failed",
           description: "Invalid email or password",
@@ -37,6 +42,7 @@ const StudentLogin = () => {
         });
       }
     } catch (error) {
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: "An error occurred. Please try again.",
