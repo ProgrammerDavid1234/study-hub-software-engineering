@@ -60,24 +60,13 @@ const StudentDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if the user is authenticated and is a student
-    if (!isAuthenticated) {
-      navigate("/student/login");
-      return;
-    }
-    
-    if (user?.role !== "student") {
-      navigate("/");
-      return;
-    }
-    
-    // Simulate data loading
+    // Skip authentication checks - just simulate data loading
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1000);
     
     return () => clearTimeout(timer);
-  }, [isAuthenticated, user, navigate]);
+  }, []);
 
   if (isLoading) {
     return (
