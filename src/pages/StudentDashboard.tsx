@@ -60,12 +60,8 @@ const StudentDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Skip authentication checks - just simulate data loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
+    // Show dashboard immediately
+    setIsLoading(false);
   }, []);
 
   if (isLoading) {
