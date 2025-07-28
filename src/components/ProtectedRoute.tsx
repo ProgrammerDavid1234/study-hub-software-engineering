@@ -14,27 +14,6 @@ export const ProtectedRoute = ({
   allowedRoles,
   redirectTo = '/student/login'
 }: ProtectedRouteProps) => {
-  const { user, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate(redirectTo);
-      return;
-    }
-
-    if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-      navigate(user.role === 'student' ? '/student/dashboard' : '/teacher/dashboard');
-    }
-  }, [isAuthenticated, user, allowedRoles, navigate, redirectTo]);
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    return null;
-  }
-
+  // Skip all authentication checks - allow access to all protected routes
   return <>{children}</>;
 };
